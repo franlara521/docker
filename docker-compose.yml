@@ -80,6 +80,18 @@ services:
       - "traefik.http.routers.nextcloud.entrypoints=websecure"
       - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
     restart: unless-stopped
+  #  adminer:
+  #   container_name: adminer
+  #   image: adminer:4.6.3-standalone
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.adminer.rule=Host(`adminer.franlab.es`)"
+  #     - "traefik.http.routers.adminer.entrypoints=websecure"
+  #     - "traefik.http.routers.adminer.tls.certresolver=myresolver"
+  #   networks:
+  #    - backend
+  #   depends_on:
+  #     - mariadb
 
 networks:
  frontend:
