@@ -2,97 +2,83 @@ version: "3.3"
 
 services:
 
-   traefik:
-    image: traefik:v2.2
-    container_name: traefik
-    networks:
-      - frontend
-      - backend
-    restart: unless-stopped
-    command:
-      #- "--log.level=DEBUG"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=franlara521@gmail.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - "./traefik/letsencrypt:/letsencrypt"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  traefik:
+   image: traefik:v2.2
+   container_name: traefik
+   networks:
+    - frontend
+    - backend
+   restart: unless-stopped
+   command:
+    #- "--log.level=DEBUG"
+    - "--api.insecure=true"
+    - "--providers.docker=true"
+    - "--providers.docker.exposedbydefault=false"
+    - "--entrypoints.web.address=:80"
+    - "--entrypoints.websecure.address=:443"
+    - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+    - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+    - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+    - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+    - "--certificatesresolvers.myresolver.acme.email=franlara521@gmail.com"
+    - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+   ports:
+    - "80:80"
+    - "443:443"
+   volumes:
+    - "./traefik/letsencrypt:/letsencrypt"
+    - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
-   portainer:
-    image: portainer/portainer
-    container_name: portainer
-    command: -H unix:///var/run/docker.sock
-    restart: unless-stopped
-    networks:
-      - backend
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./portainer/data:/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`ptnr.franlab.es`)"
-      - "traefik.http.routers.portainer.entrypoints=websecure"
-      - "traefik.http.routers.portainer.tls.certresolver=myresolver"
-
-   mariadb:
-    image: mariadb
-    container_name: mariadb
-    networks:
-      - backend
-    volumes:
-      - ./maridadb/db:/var/lib/mysql
-      - /etc/localtime:/etc/localtime:ro
-    environment:
-      - MYSQL_ROOT_PASSWORD=toor
-      - MYSQL_PASSWORD=mysql
-      - MYSQL_DATABASE=nextcloud
-      - MYSQL_USER=nextcloud
-    restart: unless-stopped
+  mariadb:
+   image: mariadb
+   container_name: mariadb
+   networks:
+    - backend
+   volumes:
+    - ./maridadb/db:/var/lib/mysql
+    - /etc/localtime:/etc/localtime:ro
+   environment:
+    - MYSQL_ROOT_PASSWORD=toor
+    - MYSQL_PASSWORD=mysql
+    - MYSQL_DATABASE=nextcloud
+    - MYSQL_USER=nextcloud
+   restart: unless-stopped
   
-   nextcloud:
-    image: nextcloud:latest
-    container_name: nextcloud
-    networks:
-      - backend
-    depends_on:
-      - mariadb
-    volumes:
-      - ./nextcloud/html:/var/www/html
-      - ./nextcloud/config:/var/www/html/config
-      - ./nextcloud/custom_apps:/var/www/html/custom_apps
-      - ./nextcloud/data:/var/www/html/data
-      - ./nextcloud/themes:/var/www/html/themes
-      - /etc/localtime:/etc/localtime:ro
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nextcloud.rule=Host(`store.franlab.es`)"
-      - "traefik.http.routers.nextcloud.entrypoints=websecure"
-      - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
-    restart: unless-stopped
-  #  adminer:
-  #   container_name: adminer
-  #   image: adminer:4.6.3-standalone
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.adminer.rule=Host(`adminer.franlab.es`)"
-  #     - "traefik.http.routers.adminer.entrypoints=websecure"
-  #     - "traefik.http.routers.adminer.tls.certresolver=myresolver"
-  #   networks:
-  #    - backend
-  #   depends_on:
-  #     - mariadb
-
+  nextcloud:
+   image: nextcloud:latest
+   container_name: nextcloud
+   networks:
+     - backend
+   depends_on:
+     - mariadb
+   volumes:
+     - ./nextcloud/html:/var/www/html
+     - ./nextcloud/config:/var/www/html/config
+     - ./nextcloud/custom_apps:/var/www/html/custom_apps
+     - ./nextcloud/data:/var/www/html/data
+     - ./nextcloud/themes:/var/www/html/themes
+     - /etc/localtime:/etc/localtime:ro
+   labels:
+     - "traefik.enable=true"
+     - "traefik.http.routers.nextcloud.rule=Host(`store.franlab.es`)"
+     - "traefik.http.routers.nextcloud.entrypoints=websecure"
+     - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
+   restart: unless-stopped
+  phpmyadmin:
+   networks:
+    - backend
+   image: phpmyadmin/phpmyadmin
+   container_name: phpmyadmin
+   environment:
+    - PMA_ARBITRARY=1
+   restart: unless-stopped
+   volumes:
+    - ./phpmyadmin/sessions:/sessions
+   labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.phpmyadmin.rule=Host(`db.franlab.es`)"
+    - "traefik.http.routers.phpmyadmin.entrypoints=websecure"
+    - "traefik.http.routers.phpmyadmin.tls.certresolver=myresolver"
 networks:
  frontend:
    external: true

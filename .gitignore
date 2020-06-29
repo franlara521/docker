@@ -4,3 +4,9 @@
 /nextcloud
 /portainer
 /traefik
+.calibre
+.jellyfin
+phpmyadmin
+jellyfin
+metadata.db
+.gitignore
