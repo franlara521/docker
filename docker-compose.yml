@@ -1,86 +1,69 @@
-version: "3.3"
-
+version: "3"
 services:
-
-  traefik:
-   image: traefik:v2.2
-   container_name: traefik
-   networks:
-    - frontend
-    - backend
-   restart: unless-stopped
-   command:
-    #- "--log.level=DEBUG"
-    - "--api.insecure=true"
-    - "--providers.docker=true"
-    - "--providers.docker.exposedbydefault=false"
-    - "--entrypoints.web.address=:80"
-    - "--entrypoints.websecure.address=:443"
-    - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-    - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-    - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-    - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-    - "--certificatesresolvers.myresolver.acme.email=franlara521@gmail.com"
-    - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-   ports:
-    - "80:80"
-    - "443:443"
-   volumes:
-    - "./traefik/letsencrypt:/letsencrypt"
-    - "/var/run/docker.sock:/var/run/docker.sock:ro"
-
-  mariadb:
-   image: mariadb
-   container_name: mariadb
-   networks:
-    - backend
-   volumes:
-    - ./maridadb/db:/var/lib/mysql
-    - /etc/localtime:/etc/localtime:ro
-   environment:
-    - MYSQL_ROOT_PASSWORD=toor
-    - MYSQL_PASSWORD=mysql
-    - MYSQL_DATABASE=nextcloud
-    - MYSQL_USER=nextcloud
-   restart: unless-stopped
-  
-  nextcloud:
-   image: nextcloud:latest
-   container_name: nextcloud
-   networks:
-     - backend
-   depends_on:
-     - mariadb
-   volumes:
-     - ./nextcloud/html:/var/www/html
-     - ./nextcloud/config:/var/www/html/config
-     - ./nextcloud/custom_apps:/var/www/html/custom_apps
-     - ./nextcloud/data:/var/www/html/data
-     - ./nextcloud/themes:/var/www/html/themes
-     - /etc/localtime:/etc/localtime:ro
-   labels:
-     - "traefik.enable=true"
-     - "traefik.http.routers.nextcloud.rule=Host(`store.franlab.es`)"
-     - "traefik.http.routers.nextcloud.entrypoints=websecure"
-     - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
-   restart: unless-stopped
-  phpmyadmin:
-   networks:
-    - backend
-   image: phpmyadmin/phpmyadmin
-   container_name: phpmyadmin
-   environment:
-    - PMA_ARBITRARY=1
-   restart: unless-stopped
-   volumes:
-    - ./phpmyadmin/sessions:/sessions
-   labels:
-    - "traefik.enable=true"
-    - "traefik.http.routers.phpmyadmin.rule=Host(`db.franlab.es`)"
-    - "traefik.http.routers.phpmyadmin.entrypoints=websecure"
-    - "traefik.http.routers.phpmyadmin.tls.certresolver=myresolver"
-networks:
- frontend:
-   external: true
- backend:
-   external: true
+  loadbalancer:
+    container_name: nginx-proxy
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: always
+    ports:
+      # Public HTTP Port:
+      - '80:80'
+      # Public HTTPS Port:
+      - '443:443'
+      # Admin Web Port:
+      - '81:81'
+    environment:
+      # These are the settings to access your db
+      DB_MYSQL_HOST: "db"
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: "npm"
+      DB_MYSQL_PASSWORD: "npm"
+      DB_MYSQL_NAME: "npm"
+      # If you would rather use Sqlite uncomment this
+      # and remove all DB_MYSQL_* lines above
+      # DB_SQLITE_FILE: "/data/database.sqlite"
+      # Uncomment this if IPv6 is not enabled on your host
+      # DISABLE_IPV6: 'true'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      - db
+  db:
+    container_name: database
+    image: 'jc21/mariadb-aria:latest'
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 'npm'
+      MYSQL_DATABASE: 'npm'
+      MYSQL_USER: 'npm'
+      MYSQL_PASSWORD: 'npm'
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "8085:80/tcp"
+    environment:
+      TZ: 'Europe/Madrid'
+      # WEBPASSWORD: 'set a secure password here or it will be random'
+    # Volumes store your data between container upgrades
+    volumes:
+      - './etc-pihole/:/etc/pihole/'
+      - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
+    # Recommended but not required (DHCP needs NET_ADMIN)
+    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+  squid-proxy:
+    container_name: squid
+    image: sameersbn/squid:3.5.27-2
+    ports:
+      - "3128:3128"
+    volumes:
+      - /srv/docker/squid/cache:/var/spool/squid
+    restart: always
