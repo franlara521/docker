@@ -1,5 +1,7 @@
 version: "3"
 services:
+
+## NGINX Proxy manager to control the access through browsers from Internet
   loadbalancer:
     container_name: nginx-proxy
     image: 'jc21/nginx-proxy-manager:latest'
@@ -28,6 +30,8 @@ services:
       - ./letsencrypt:/etc/letsencrypt
     depends_on:
       - db
+
+## Database used by proxy manager
   db:
     container_name: database
     image: 'jc21/mariadb-aria:latest'
@@ -39,6 +43,8 @@ services:
       MYSQL_PASSWORD: 'npm'
     volumes:
       - ./data/mysql:/var/lib/mysql
+
+## Pihole container to block the ads in browser
   pihole:
     container_name: pihole
     image: pihole/pihole:latest
@@ -59,6 +65,8 @@ services:
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
+
+## Proxy to cache webcontent and serve it to devices in the network
   squid-proxy:
     container_name: squid
     image: sameersbn/squid:3.5.27-2
@@ -67,3 +75,58 @@ services:
     volumes:
       - /srv/docker/squid/cache:/var/spool/squid
     restart: always
+
+## To collect metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: monitoring_prometheus
+    restart: unless-stopped
+    volumes:
+      - ./data/prometheus/config:/etc/prometheus/
+      - ./data/prometheus/data:/prometheus
+    command:
+      - '-config.file=/etc/prometheus/prometheus.yml'
+      - '-storage.local.path=/prometheus'
+      - '-alertmanager.url=http://alertmanager:9093'
+    expose:
+      - 9090
+    ports:
+      - 9090:9090
+    links:
+      - cadvisor:cadvisor
+      - node-exporter:node-exporter
+
+## Exporter to get the metrics from the containers
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: monitoring_node_exporter
+    restart: unless-stopped
+    expose:
+      - 9100
+
+## Get the latest stats from docker
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: monitoring_cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    expose:
+      - 8080
+
+## Interface to show the collected metrics 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: monitoring_grafana
+    restart: unless-stopped
+    links:
+      - prometheus:prometheus
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=MYPASSWORT
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=franlab.es
