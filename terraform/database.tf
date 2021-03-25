@@ -2,6 +2,11 @@ resource "docker_image" "database" {
   name = "jc21/mariadb-aria:latest"
 }
 
+resource "docker_volume" "db_vol" {
+  name = "db_vol"
+}
+
+
 resource "docker_container" "db" {
   name  = "mariadb"
   image = docker_image.database.latest
@@ -15,7 +20,7 @@ resource "docker_container" "db" {
   volumes {
     container_path  = "/var/lib/mysql"
     read_only = false
-    host_path = "${path.cwd}/app/db/data/mysql"
+    volume_name = "db_vol"
    #volume_name = "${docker_volume.dashing_public.name}"
     }
 

@@ -2,6 +2,10 @@ resource "docker_image" "nginx_proxy" {
   name = "jc21/nginx-proxy-manager:latest"
 }
 
+resource "docker_volume" "proxy_vol" {
+  name = "proxy_vol"
+}
+
 resource "docker_container" "nginx_proxy" {
   name  = "reverse-proxy"
   image = docker_image.nginx_proxy.latest
@@ -15,13 +19,13 @@ resource "docker_container" "nginx_proxy" {
   volumes {
     container_path  = "/data"
     read_only = false
-    host_path = "${path.cwd}/app/nginx/data"
+    volume_name = "proxy_vol/data"
    #volume_name = "${docker_volume.dashing_public.name}"
     }
   volumes {
     container_path  = "/etc/letsencrypt"
     read_only = false
-    host_path = "${path.cwd}/app/nginx/letsencrypt"
+    volume_name = "proxy_vol/letsencrypt"
    #volume_name = "${docker_volume.dashing_public.name}"
     }
   ports {
