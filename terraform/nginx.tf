@@ -15,14 +15,26 @@ resource "docker_container" "nginx_proxy" {
   volumes {
     container_path  = "/data"
     read_only = false
-    host_path = "./app/nginx/data"
+    host_path = "${path.cwd}/app/nginx/data"
    #volume_name = "${docker_volume.dashing_public.name}"
     }
   volumes {
     container_path  = "/etc/letsencrypt"
     read_only = false
-    host_path = "./app/nginx/letsencrypt"
+    host_path = "${path.cwd}/app/nginx/letsencrypt"
    #volume_name = "${docker_volume.dashing_public.name}"
     }
+  ports {
+    internal = 80
+    external = 80
+  }
+  ports {
+    internal = 443
+    external = 443
+  }
+  ports {
+    internal = 81
+    external = 81
+  }
 
 }

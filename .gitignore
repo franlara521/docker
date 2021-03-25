@@ -10,3 +10,4 @@ phpmyadmin
 jellyfin
 metadata.db
 .gitignore
+.terraform
