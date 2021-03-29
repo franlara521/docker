@@ -32,17 +32,17 @@ services:
       - db
 
 ## Database used by proxy manager
-  # db:
-  #   container_name: database
-  #   image: 'jc21/mariadb-aria:latest'
-  #   restart: always
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: 'npm'
-  #     MYSQL_DATABASE: 'npm'
-  #     MYSQL_USER: 'npm'
-  #     MYSQL_PASSWORD: 'npm'
-  #   volumes:
-  #     - ~/docker/db/data/mysql:/var/lib/mysql
+  db:
+    container_name: database
+    image: 'jc21/mariadb-aria:latest'
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 'npm'
+      MYSQL_DATABASE: 'npm'
+      MYSQL_USER: 'npm'
+      MYSQL_PASSWORD: 'npm'
+    volumes:
+      - ~/docker/db/data/mysql:/var/lib/mysql
 
 ## Pihole container to block the ads in browser
   pihole:
