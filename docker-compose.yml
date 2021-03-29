@@ -131,15 +131,15 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_DOMAIN=franlab.es
 ## Duck DNS updates
-  # dydns:
-  #   image: linuxserver/duckdns
-  #   container_name: duckdns
-  #   restart: unless-stopped
-  #   environment:
-  #     - PUID=1000
-  #     - PGID=1000
-  #     - SUBDOMAINS=ejemplo1
-  #     - TOKEN=f1641121-279c-445a-a052-af47f31815df
+  dydns:
+    image: linuxserver/duckdns
+    container_name: duckdns
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - SUBDOMAINS=ejemplo1
+      - TOKEN=f1641121-279c-445a-a052-af47f31815df
 
 ## Bitwarden
   bitwarden:
