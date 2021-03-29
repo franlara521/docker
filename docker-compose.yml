@@ -26,8 +26,8 @@ services:
       # Uncomment this if IPv6 is not enabled on your host
       # DISABLE_IPV6: 'true'
     volumes:
-      - ./data:/data
-      - ./letsencrypt:/etc/letsencrypt
+      - ~/docker/proxy/data:/data
+      - ~/docker/proxy/letsencrypt:/etc/letsencrypt
     depends_on:
       - db
 
@@ -42,7 +42,7 @@ services:
       MYSQL_USER: 'npm'
       MYSQL_PASSWORD: 'npm'
     volumes:
-      - ./data/mysql:/var/lib/mysql
+      - ~/docker/db/data/mysql:/var/lib/mysql
 
 ## Pihole container to block the ads in browser
   # pihole:
@@ -73,7 +73,7 @@ services:
     ports:
       - "3128:3128"
     volumes:
-      - /srv/docker/squid/cache:/var/spool/squid
+      - ~/docker/squid/cache:/var/spool/squid
     restart: always
 
 ## To collect metrics
@@ -82,8 +82,8 @@ services:
     container_name: monitoring_prometheus
     restart: unless-stopped
     volumes:
-      - ./data/prometheus/config:/etc/prometheus/
-      - ./data/prometheus/data:/prometheus
+      - ~/docker/prometheus/config:/etc/prometheus/
+      - ~/docker/prometheus/data:/prometheus
     command:
       - '-config.file=/etc/prometheus/prometheus.yml'
       - '-storage.local.path=/prometheus'
@@ -125,7 +125,7 @@ services:
     links:
       - prometheus:prometheus
     volumes:
-      - ./data/grafana:/var/lib/grafana
+      - ~/docker/grafana:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=MYPASSWORT
       - GF_USERS_ALLOW_SIGN_UP=false
@@ -147,6 +147,6 @@ services:
     container_name: bitwarden
     restart: unless-stopped
     volumes:
-      - ~/docker/data/bitwarden/bw-data:/data/
+      - ~/docker/bitwarden/bw-data:/data/
     ports:
       - "8085:80"
