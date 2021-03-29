@@ -45,26 +45,26 @@ services:
       - ./data/mysql:/var/lib/mysql
 
 ## Pihole container to block the ads in browser
-  pihole:
-    container_name: pihole
-    image: pihole/pihole:latest
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "67:67/udp"
-      - "8085:80/tcp"
-    environment:
-      TZ: 'Europe/Madrid'
-      # WEBPASSWORD: 'set a secure password here or it will be random'
-    # Volumes store your data between container upgrades
-    volumes:
-      - './etc-pihole/:/etc/pihole/'
-      - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
-    # Recommended but not required (DHCP needs NET_ADMIN)
-    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
-    cap_add:
-      - NET_ADMIN
-    restart: unless-stopped
+  # pihole:
+  #   container_name: pihole
+  #   image: pihole/pihole:latest
+  #   ports:
+  #     - "53:53/tcp"
+  #     - "53:53/udp"
+  #     - "67:67/udp"
+  #     - "8089:80/tcp"
+  #   environment:
+  #     TZ: 'Europe/Madrid'
+  #     # WEBPASSWORD: 'set a secure password here or it will be random'
+  #   # Volumes store your data between container upgrades
+  #   volumes:
+  #     - './etc-pihole/:/etc/pihole/'
+  #     - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
+  #   # Recommended but not required (DHCP needs NET_ADMIN)
+  #   #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+  #   cap_add:
+  #     - NET_ADMIN
+  #   restart: unless-stopped
 
 ## Proxy to cache webcontent and serve it to devices in the network
   squid-proxy:
@@ -130,3 +130,23 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=MYPASSWORT
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_DOMAIN=franlab.es
+## Duck DNS updates
+  # dydns:
+  #   image: linuxserver/duckdns
+  #   container_name: duckdns
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - SUBDOMAINS=ejemplo1
+  #     - TOKEN=f1641121-279c-445a-a052-af47f31815df
+
+## Bitwarden
+  bitwarden:
+    image: bitwardenrs/server
+    container_name: bitwarden
+    restart: unless-stopped
+    volumes:
+      - ~/docker/data/bitwarden/bw-data:/data/
+    ports:
+      - "8085:80"
