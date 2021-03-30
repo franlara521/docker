@@ -1,4 +1,4 @@
-version: "3"
+version: "2"
 services:
 
 ## NGINX Proxy manager to control the access through browsers from Internet
